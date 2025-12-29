@@ -6,3 +6,5 @@ export { MetricRow } from "./MetricRow";
 export type { MetricRowProps, MetricItem } from "./MetricRow";
 export { TokenCard } from "./TokenCard";
 export type { TokenCardProps } from "./TokenCard";
+export { TokenPopup } from "./TokenPopup";
+export type { TokenPopupProps } from "./TokenPopup";

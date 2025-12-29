@@ -1,9 +1,9 @@
 "use client";
 
 import { Icon } from "@/components/atoms";
-import { ArrowDownUp, Zap } from "lucide-react";
+import { ArrowDownUp, Zap, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { TokenStatus } from "@/types";
+import type { TokenStatus, SortOption, SortDirection } from "@/types";
 import { COLUMN_TITLES } from "@/lib/constants";
 
 export interface ColumnHeaderProps {
@@ -12,6 +12,8 @@ export interface ColumnHeaderProps {
   activeFilter?: "P1" | "P2" | "P3" | null;
   onSortClick?: () => void;
   onFilterClick?: (filter: "P1" | "P2" | "P3") => void;
+  sortBy?: SortOption | null;
+  sortDirection?: SortDirection;
   className?: string;
 }
 
@@ -21,9 +23,24 @@ function ColumnHeader({
   activeFilter = null,
   onSortClick,
   onFilterClick,
+  sortBy = null,
+  sortDirection = "desc",
   className,
 }: ColumnHeaderProps) {
   const title = COLUMN_TITLES[status];
+  
+  const getSortLabel = () => {
+    if (!sortBy) return "Sort";
+    const labels: Record<SortOption, string> = {
+      marketCap: "MC",
+      volume: "Vol",
+      price: "Price",
+      holders: "Holders",
+      transactions: "TX",
+      age: "Age",
+    };
+    return labels[sortBy];
+  };
 
   return (
     <div
@@ -73,10 +90,26 @@ function ColumnHeader({
         {/* Sort/Filter icon */}
         <button
           onClick={onSortClick}
-          className="p-1.5 hover:bg-accent rounded transition-colors"
+          className={cn(
+            "p-1.5 hover:bg-accent rounded transition-colors flex items-center gap-1",
+            sortBy && "bg-accent/50"
+          )}
           aria-label="Sort and filter"
         >
-          <ArrowDownUp size={14} className="text-muted-foreground" />
+          {sortBy ? (
+            <>
+              <span className="text-[10px] font-medium text-foreground">
+                {getSortLabel()}
+              </span>
+              {sortDirection === "asc" ? (
+                <ArrowUp size={12} className="text-foreground" />
+              ) : (
+                <ArrowDown size={12} className="text-foreground" />
+              )}
+            </>
+          ) : (
+            <ArrowDownUp size={14} className="text-muted-foreground" />
+          )}
         </button>
       </div>
     </div>

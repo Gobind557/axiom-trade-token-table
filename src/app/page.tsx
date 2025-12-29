@@ -2,7 +2,9 @@
 
 import { DashboardLayout } from "@/components/templates/DashboardLayout";
 import { TokenColumn } from "@/components/organisms/TokenColumn";
+import { TokenPopup } from "@/components/molecules/TokenPopup";
 import type { Token } from "@/types";
+import { useAppSelector } from "@/store/hooks";
 
 // Sample token data matching the screenshot
 const sampleTokens: Record<"new" | "final-stretch" | "migrated", Token[]> = {
@@ -347,6 +349,16 @@ const sampleTokens: Record<"new" | "final-stretch" | "migrated", Token[]> = {
 };
 
 export default function Home() {
+  const selectedTokenId = useAppSelector((state) => state.ui.selectedTokenId);
+  
+  // Find the selected token from all token arrays
+  const allTokens = [
+    ...sampleTokens.new,
+    ...sampleTokens["final-stretch"],
+    ...sampleTokens.migrated,
+  ];
+  const selectedToken = allTokens.find((token) => token.id === selectedTokenId) || null;
+
   return (
     <DashboardLayout>
       <div className="w-full h-full flex flex-col overflow-hidden">
@@ -364,6 +376,7 @@ export default function Home() {
           <TokenColumn status="migrated" tokens={sampleTokens.migrated} />
         </div>
       </div>
+      <TokenPopup token={selectedToken} />
     </DashboardLayout>
   );
 }

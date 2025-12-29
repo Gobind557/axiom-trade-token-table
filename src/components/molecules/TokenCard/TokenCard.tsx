@@ -1,11 +1,17 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Icon } from "@/components/atoms";
+import { Icon, Tooltip } from "@/components/atoms";
 import { ActionButton } from "@/components/molecules/ActionButton";
 import type { Token } from "@/types";
 import { formatCurrency, formatNumber, truncateAddress } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  setModalOpen,
+  setSelectedToken,
+  setPopupPosition,
+} from "@/store/slices/uiSlice";
 
 export interface TokenCardProps {
   token: Token;
@@ -14,6 +20,7 @@ export interface TokenCardProps {
 }
 
 function TokenCard({ token, className, style }: TokenCardProps) {
+  const dispatch = useAppDispatch();
   const {
     name,
     symbol,
@@ -31,6 +38,70 @@ function TokenCard({ token, className, style }: TokenCardProps) {
   const [marketCap, setMarketCap] = useState(initialMarketCap);
   const [volume, setVolume] = useState(initialVolume);
   const [priceChange, setPriceChange] = useState<"up" | "down" | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const iconRef = useRef<HTMLButtonElement>(null);
+
+  const handleUsersIconHover = () => {
+    // Clear any pending close timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+
+    // Calculate position below the token card
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      const popupWidth = 384; // max-w-sm = 384px
+      const viewportWidth = window.innerWidth;
+
+      // Position popup below the card, slightly offset
+      let top = rect.bottom + 8;
+      let left = rect.left;
+
+      // Adjust if popup would overflow right edge
+      if (left + popupWidth > viewportWidth) {
+        left = viewportWidth - popupWidth - 16; // 16px padding from edge
+      }
+
+      // Adjust if popup would overflow left edge
+      if (left < 16) {
+        left = 16;
+      }
+
+      // Adjust if popup would overflow bottom (position above instead)
+      const viewportHeight = window.innerHeight;
+      if (top + 300 > viewportHeight && rect.top > 300) {
+        top = rect.top - 300 - 8; // Position above
+      }
+
+      dispatch(setPopupPosition({ top, left }));
+      dispatch(setSelectedToken(token.id));
+      dispatch(setModalOpen(true));
+    } else {
+      dispatch(setSelectedToken(token.id));
+      dispatch(setModalOpen(true));
+    }
+  };
+
+  const handleUsersIconLeave = () => {
+    // Add a delay before closing to allow moving to the popup
+    hoverTimeoutRef.current = setTimeout(() => {
+      dispatch(setModalOpen(false));
+      dispatch(setSelectedToken(null));
+      dispatch(setPopupPosition(null));
+      hoverTimeoutRef.current = null;
+    }, 150); // Reduced delay to prevent blinking
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Simulate price changes with shorter interval
   useEffect(() => {
@@ -38,11 +109,11 @@ function TokenCard({ token, className, style }: TokenCardProps) {
       const changePercent = (Math.random() - 0.5) * 0.1; // ±5% change
       const newMarketCap = initialMarketCap * (1 + changePercent);
       const newVolume = initialVolume * (1 + changePercent * 0.5);
-      
+
       setPriceChange(newMarketCap > marketCap ? "up" : "down");
       setMarketCap(newMarketCap);
       setVolume(newVolume);
-      
+
       // Reset animation state after animation completes
       setTimeout(() => setPriceChange(null), 600);
     }, 2000); // Update every 2 seconds instead of longer intervals
@@ -54,8 +125,9 @@ function TokenCard({ token, className, style }: TokenCardProps) {
 
   return (
     <div
+      ref={cardRef}
       className={cn(
-        "bg-secondary/30 border border-border rounded-lg p-2 transition-all duration-300 hover:bg-secondary/50 animate-slide-up w-full mx-0",
+        "mx-0 w-full animate-slide-up rounded-lg border border-border bg-secondary/30 p-2 transition-all duration-300 hover:bg-secondary/50",
         className
       )}
       style={style}
@@ -63,12 +135,12 @@ function TokenCard({ token, className, style }: TokenCardProps) {
       <div className="flex gap-2">
         {/* Left Section - Image/Icon */}
         <div className="flex-shrink-0">
-          <div className="relative w-20 h-20 rounded-lg border border-border/50 bg-background/50 flex items-center justify-center overflow-hidden">
+          <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg border border-border/50 bg-background/50">
             {imageUrl ? (
               <img
                 src={imageUrl}
                 alt={name}
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             ) : (
               <span className="text-lg font-bold text-foreground">
@@ -76,50 +148,98 @@ function TokenCard({ token, className, style }: TokenCardProps) {
               </span>
             )}
             {/* Red badge indicator */}
-            <div className="absolute -bottom-0.5 -left-0.5 w-3 h-3 bg-red-500 rounded-full border border-background flex items-center justify-center">
-              <div className="w-1 h-1 bg-white rounded-full" />
+            <div className="absolute -bottom-0.5 -left-0.5 flex h-3 w-3 items-center justify-center rounded-full border border-background bg-red-500">
+              <div className="h-1 w-1 rounded-full bg-white" />
             </div>
           </div>
-          <p className="text-[9px] text-muted-foreground mt-0.5 font-mono leading-tight">
+          <p className="mt-0.5 font-mono text-[9px] leading-tight text-muted-foreground">
             {displayAddress}
           </p>
         </div>
 
         {/* Middle Section - Name & Metrics */}
-        <div className="flex-1 min-w-0 flex flex-col">
+        <div className="flex min-w-0 flex-1 flex-col">
           {/* Name Row */}
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <h3 className="text-s font-semibold text-foreground truncate">
+          <div className="mb-0.5 flex items-center gap-1.5">
+            <h3 className="text-s truncate font-semibold text-foreground">
               {name}
             </h3>
-            <span className="text-[11px] text-muted-foreground truncate">
+            <span className="truncate text-[11px] text-muted-foreground">
               {symbol}
             </span>
-            <button className="flex-shrink-0 p-0.5 hover:bg-accent rounded transition-colors">
-              <Icon name="copy" size={10} className="text-muted-foreground" />
-            </button>
+            <Tooltip content="Copy token name" side="bottom">
+              <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
+                <Icon name="copy" size={10} className="text-muted-foreground" />
+              </button>
+            </Tooltip>
           </div>
 
           {/* Time and Icons Row */}
-          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-            <span className="text-[10px] font-medium text-green-500">{age}</span>
-            <Icon name="search" size={10} className="text-muted-foreground" />
-            <Icon name="users" size={10} className="text-muted-foreground" />
-            <Icon name="link" size={10} className="text-muted-foreground" />
-            <Icon name="copy" size={10} className="text-muted-foreground" />
-            <Icon name="trophy" size={10} className="text-muted-foreground" />
-            <Icon name="eye" size={10} className="text-muted-foreground" />
+          <div className="mb-1 flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] font-medium text-green-500">
+              {age}
+            </span>
+            <Tooltip content="Search token" side="bottom">
+              <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
+                <Icon
+                  name="search"
+                  size={10}
+                  className="text-muted-foreground"
+                />
+              </button>
+            </Tooltip>
+            <Tooltip content="View token profile" side="bottom">
+              <button
+                ref={iconRef}
+                onMouseEnter={handleUsersIconHover}
+                onMouseLeave={handleUsersIconLeave}
+                className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent"
+                aria-label="View token profile"
+              >
+                <Icon
+                  name="users"
+                  size={10}
+                  className="text-muted-foreground"
+                />
+              </button>
+            </Tooltip>
+            <Tooltip content="View on explorer" side="bottom">
+              <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
+                <Icon name="link" size={10} className="text-muted-foreground" />
+              </button>
+            </Tooltip>
+            <Tooltip content="Copy address" side="bottom">
+              <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
+                <Icon name="copy" size={10} className="text-muted-foreground" />
+              </button>
+            </Tooltip>
+            <Tooltip content="View achievements" side="bottom">
+              <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
+                <Icon
+                  name="trophy"
+                  size={10}
+                  className="text-muted-foreground"
+                />
+              </button>
+            </Tooltip>
+            <Tooltip content="View details" side="bottom">
+              <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
+                <Icon name="eye" size={10} className="text-muted-foreground" />
+              </button>
+            </Tooltip>
             {holders > 0 && (
-              <span className="text-[10px] text-muted-foreground">{holders}</span>
+              <span className="text-[10px] text-muted-foreground">
+                {holders}
+              </span>
             )}
           </div>
 
           {/* Percentage Indicators Row - aligned with button */}
-          <div className="flex items-center gap-1 flex-wrap">
+          <div className="flex flex-wrap items-center gap-1">
             {/* Holders Percent */}
             <div
               className={cn(
-                "px-1.5 py-0.5 rounded text-[9px] font-medium flex items-center gap-0.5 transition-all duration-200",
+                "flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-medium transition-all duration-200",
                 metrics.holdersPercent > 0
                   ? "bg-red-500 text-white"
                   : "bg-green-500/20 text-green-500"
@@ -136,7 +256,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
             {/* Liquidity Percent */}
             <div
               className={cn(
-                "px-1.5 py-0.5 rounded text-[9px] font-medium flex items-center gap-0.5 transition-all duration-200",
+                "flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-medium transition-all duration-200",
                 metrics.liquidityPercent > 0
                   ? "bg-red-500 text-white"
                   : "bg-green-500/20 text-green-500"
@@ -156,7 +276,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
             {/* Target Percent */}
             <div
               className={cn(
-                "px-1.5 py-0.5 rounded text-[9px] font-medium flex items-center gap-0.5 transition-all duration-200",
+                "flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-medium transition-all duration-200",
                 metrics.targetPercent > 0
                   ? "bg-red-500 text-white"
                   : "bg-green-500/20 text-green-500"
@@ -173,7 +293,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
             {/* Gear Percent */}
             <div
               className={cn(
-                "px-1.5 py-0.5 rounded text-[9px] font-medium flex items-center gap-0.5 transition-all duration-200",
+                "flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-medium transition-all duration-200",
                 metrics.gearPercent > 0
                   ? "bg-red-500 text-white"
                   : "bg-green-500/20 text-green-500"
@@ -190,7 +310,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
             {/* Holders Gear Percent */}
             <div
               className={cn(
-                "px-1.5 py-0.5 rounded text-[9px] font-medium flex items-center gap-0.5 transition-all duration-200",
+                "flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-medium transition-all duration-200",
                 metrics.holdersGearPercent > 0
                   ? "bg-red-500 text-white"
                   : "bg-green-500/20 text-green-500"
@@ -207,17 +327,19 @@ function TokenCard({ token, className, style }: TokenCardProps) {
         </div>
 
         {/* Right Section - Market Data & Action */}
-        <div className="flex-shrink-0 flex flex-col items-end">
+        <div className="flex flex-shrink-0 flex-col items-end">
           {/* Market Data - Compact */}
           <div className="flex flex-col items-end gap-0">
             {/* Market Cap */}
             <div className="text-right">
-              <span className="text-[7px] text-muted-foreground leading-none block">MC</span>
+              <span className="block text-[7px] leading-none text-muted-foreground">
+                MC
+              </span>
               <p
                 className={cn(
-                  "text-[11px] font-semibold text-green-500 transition-all duration-300 leading-tight",
-                  priceChange === "up" && "text-green-400 scale-110",
-                  priceChange === "down" && "text-red-400 scale-110"
+                  "text-[11px] font-semibold leading-tight text-green-500 transition-all duration-300",
+                  priceChange === "up" && "scale-110 text-green-400",
+                  priceChange === "down" && "scale-110 text-red-400"
                 )}
               >
                 {formatCurrency(marketCap)}
@@ -226,12 +348,14 @@ function TokenCard({ token, className, style }: TokenCardProps) {
 
             {/* Volume */}
             <div className="text-right">
-              <span className="text-[9px] text-muted-foreground leading-none block">V</span>
+              <span className="block text-[9px] leading-none text-muted-foreground">
+                V
+              </span>
               <p
                 className={cn(
-                  "text-[11px] font-semibold text-green-500 transition-all duration-300 leading-tight",
-                  priceChange === "up" && "text-green-400 scale-110",
-                  priceChange === "down" && "text-red-400 scale-110"
+                  "text-[11px] font-semibold leading-tight text-green-500 transition-all duration-300",
+                  priceChange === "up" && "scale-110 text-green-400",
+                  priceChange === "down" && "scale-110 text-red-400"
                 )}
               >
                 {formatCurrency(volume)}
@@ -241,17 +365,21 @@ function TokenCard({ token, className, style }: TokenCardProps) {
             {/* Fees and Transactions */}
             <div className="flex items-center gap-1.5 text-right">
               <div className="flex flex-col items-end">
-                <span className="text-[9px] text-muted-foreground leading-none block">F</span>
+                <span className="block text-[9px] leading-none text-muted-foreground">
+                  F
+                </span>
                 <div className="flex items-center gap-0.5">
                   <Icon name="dollar" size={9} className="text-purple-500" />
-                  <span className="text-[10px] font-medium text-foreground leading-tight">
+                  <span className="text-[10px] font-medium leading-tight text-foreground">
                     {fee.toFixed(3)}
                   </span>
                 </div>
               </div>
               <div className="flex flex-col items-end">
-                <span className="text-[9px] text-muted-foreground leading-none block">TX</span>
-                <p className="text-[10px] font-medium text-foreground leading-tight">
+                <span className="block text-[9px] leading-none text-muted-foreground">
+                  TX
+                </span>
+                <p className="text-[10px] font-medium leading-tight text-foreground">
                   {formatNumber(transactions)}
                 </p>
               </div>
@@ -267,4 +395,3 @@ function TokenCard({ token, className, style }: TokenCardProps) {
 }
 
 export default TokenCard;
-

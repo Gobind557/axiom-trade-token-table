@@ -6,6 +6,7 @@ interface UIState {
   activePopoverId: string | null;
   sidebarOpen: boolean;
   theme: "dark" | "light";
+  popupPosition: { top: number; left: number } | null;
 }
 
 const initialState: UIState = {
@@ -14,6 +15,7 @@ const initialState: UIState = {
   activePopoverId: null,
   sidebarOpen: false,
   theme: "dark",
+  popupPosition: null,
 };
 
 const uiSlice = createSlice({
@@ -35,6 +37,9 @@ const uiSlice = createSlice({
     setTheme: (state, action: PayloadAction<"dark" | "light">) => {
       state.theme = action.payload;
     },
+    setPopupPosition: (state, action: PayloadAction<{ top: number; left: number } | null>) => {
+      state.popupPosition = action.payload;
+    },
   },
 });
 
@@ -44,6 +49,7 @@ export const {
   setActivePopover,
   setSidebarOpen,
   setTheme,
+  setPopupPosition,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;
