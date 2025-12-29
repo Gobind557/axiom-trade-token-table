@@ -8,3 +8,5 @@ export { TokenCard } from "./TokenCard";
 export type { TokenCardProps } from "./TokenCard";
 export { TokenPopup } from "./TokenPopup";
 export type { TokenPopupProps } from "./TokenPopup";
+export { ImagePopup } from "./ImagePopup";
+export type { ImagePopupProps } from "./ImagePopup";

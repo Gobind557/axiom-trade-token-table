@@ -11,6 +11,9 @@ import {
   setModalOpen,
   setSelectedToken,
   setPopupPosition,
+  setImagePopupOpen,
+  setImagePopupUrl,
+  setImagePopupPosition,
 } from "@/store/slices/uiSlice";
 
 export interface TokenCardProps {
@@ -39,8 +42,10 @@ function TokenCard({ token, className, style }: TokenCardProps) {
   const [volume, setVolume] = useState(initialVolume);
   const [priceChange, setPriceChange] = useState<"up" | "down" | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const imageHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLButtonElement>(null);
+  const imageRef = useRef<HTMLDivElement>(null);
 
   const handleUsersIconHover = () => {
     // Clear any pending close timeout
@@ -94,11 +99,84 @@ function TokenCard({ token, className, style }: TokenCardProps) {
     }, 150); // Reduced delay to prevent blinking
   };
 
+  const handleImageHover = () => {
+    // Clear any pending close timeout
+    if (imageHoverTimeoutRef.current) {
+      clearTimeout(imageHoverTimeoutRef.current);
+      imageHoverTimeoutRef.current = null;
+    }
+
+    // Calculate position to the right of the image
+    if (imageRef.current) {
+      const rect = imageRef.current.getBoundingClientRect();
+      const popupWidth = 320; // w-80 = 320px
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Position popup to the right of the image
+      let top = rect.top;
+      let left = rect.right + 8;
+
+      // Adjust if popup would overflow right edge
+      if (left + popupWidth > viewportWidth) {
+        // Position to the left instead
+        left = rect.left - popupWidth - 8;
+        // If still doesn't fit, center it
+        if (left < 16) {
+          left = Math.max(16, (viewportWidth - popupWidth) / 2);
+        }
+      }
+
+      // Adjust if popup would overflow bottom
+      if (top + 400 > viewportHeight) {
+        top = viewportHeight - 400 - 16;
+      }
+
+      // Adjust if popup would overflow top
+      if (top < 16) {
+        top = 16;
+      }
+
+      // Use imageUrl if available, otherwise create a data URL with the symbol/name
+      const urlToShow = imageUrl || createPlaceholderImage(symbol || name);
+
+      dispatch(setImagePopupPosition({ top, left }));
+      dispatch(setImagePopupUrl(urlToShow));
+      dispatch(setImagePopupOpen(true));
+    }
+  };
+
+  // Create a placeholder image data URL
+  const createPlaceholderImage = (text: string) => {
+    const initial = text[0]?.toUpperCase() || "?";
+    // Create a simple SVG data URL as placeholder
+    const svg = `
+      <svg width="320" height="320" xmlns="http://www.w3.org/2000/svg">
+        <rect width="320" height="320" fill="#1e293b"/>
+        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${initial}</text>
+      </svg>
+    `.trim();
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
+  };
+
+  const handleImageLeave = () => {
+    // Add a delay before closing to allow moving to the popup
+    imageHoverTimeoutRef.current = setTimeout(() => {
+      dispatch(setImagePopupOpen(false));
+      dispatch(setImagePopupUrl(null));
+      dispatch(setImagePopupPosition(null));
+      imageHoverTimeoutRef.current = null;
+    }, 150);
+  };
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (hoverTimeoutRef.current) {
         clearTimeout(hoverTimeoutRef.current);
+      }
+      if (imageHoverTimeoutRef.current) {
+        clearTimeout(imageHoverTimeoutRef.current);
       }
     };
   }, []);
@@ -135,20 +213,25 @@ function TokenCard({ token, className, style }: TokenCardProps) {
       <div className="flex gap-2">
         {/* Left Section - Image/Icon */}
         <div className="flex-shrink-0">
-          <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg border border-border/50 bg-background/50">
+          <div
+            ref={imageRef}
+            onMouseEnter={handleImageHover}
+            onMouseLeave={handleImageLeave}
+            className="relative flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-border/50 bg-background/50 transition-opacity hover:opacity-90"
+          >
             {imageUrl ? (
               <img
                 src={imageUrl}
                 alt={name}
-                className="h-full w-full object-cover"
+                className="pointer-events-none h-full w-full object-cover"
               />
             ) : (
-              <span className="text-lg font-bold text-foreground">
+              <span className="pointer-events-none text-lg font-bold text-foreground">
                 {symbol?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "?"}
               </span>
             )}
             {/* Red badge indicator */}
-            <div className="absolute -bottom-0.5 -left-0.5 flex h-3 w-3 items-center justify-center rounded-full border border-background bg-red-500">
+            <div className="pointer-events-none absolute -bottom-0.5 -left-0.5 flex h-3 w-3 items-center justify-center rounded-full border border-background bg-red-500">
               <div className="h-1 w-1 rounded-full bg-white" />
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { DashboardLayout } from "@/components/templates/DashboardLayout";
 import { TokenColumn } from "@/components/organisms/TokenColumn";
 import { TokenPopup } from "@/components/molecules/TokenPopup";
+import { ImagePopup } from "@/components/molecules/ImagePopup";
 import type { Token } from "@/types";
 import { useAppSelector } from "@/store/hooks";
 
@@ -377,6 +378,7 @@ export default function Home() {
         </div>
       </div>
       <TokenPopup token={selectedToken} />
+      <ImagePopup />
     </DashboardLayout>
   );
 }
