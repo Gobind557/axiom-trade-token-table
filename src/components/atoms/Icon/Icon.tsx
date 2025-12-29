@@ -13,6 +13,14 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
+  Star,
+  Copy,
+  Crown,
+  BarChart3,
+  ChefHat,
+  Ghost,
+  Gift,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +38,15 @@ export type IconName =
   | "trending-up"
   | "trending-down"
   | "dollar"
-  | "users-settings";
+  | "users-settings"
+  | "star"
+  | "copy"
+  | "crown"
+  | "bar-chart"
+  | "chef-hat"
+  | "ghost"
+  | "gift"
+  | "layers";
 
 const iconMap = {
   users: Users,
@@ -47,6 +63,14 @@ const iconMap = {
   "trending-down": TrendingDown,
   dollar: DollarSign,
   "users-settings": Users, // Will be combined icon
+  star: Star,
+  copy: Copy,
+  crown: Crown,
+  "bar-chart": BarChart3,
+  "chef-hat": ChefHat,
+  ghost: Ghost,
+  gift: Gift,
+  layers: Layers,
 } as const;
 
 export interface IconProps extends React.SVGProps<SVGSVGElement> {
@@ -65,7 +89,10 @@ function Icon({ name, size = 16, className, ...props }: IconProps) {
   // Special handling for combined icons
   if (name === "users-settings") {
     return (
-      <div className={cn("relative", className)} style={{ width: size, height: size }}>
+      <div
+        className={cn("relative", className)}
+        style={{ width: size, height: size }}
+      >
         <Users size={size} className="absolute" {...props} />
         <Settings
           size={(size as number) * 0.6}
@@ -86,4 +113,3 @@ function Icon({ name, size = 16, className, ...props }: IconProps) {
 }
 
 export default Icon;
-

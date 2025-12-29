@@ -29,13 +29,13 @@ function ActionButton({
     <Button
       variant="action"
       className={cn(
-        "flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold",
+        "flex items-center gap-1 px-2 py-1 text-xs font-semibold",
         variantClasses[variant],
         className
       )}
       {...props}
     >
-      {icon && <Icon name={icon} size={14} />}
+      {icon && <Icon name={icon} size={10} />}
       <span>{displayAmount}</span>
     </Button>
   );

@@ -30,6 +30,7 @@ export interface TokenMetrics {
   targetPercent: number;
   gearPercent: number;
   holdersGearPercent: number;
+  liquidityTime?: string; // Optional time string for liquidity (e.g., "14m", "53m")
 }
 
 export interface TokenColumn {
@@ -62,4 +63,3 @@ export interface PriceUpdate {
   volume: number;
   timestamp: number;
 }
-

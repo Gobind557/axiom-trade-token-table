@@ -48,3 +48,34 @@
   @apply bg-muted-foreground/50;
 }
 
+/* Custom scrollbar for token columns */
+.token-column-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.5) hsl(var(--secondary));
+}
+
+.token-column-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.token-column-scrollbar::-webkit-scrollbar-track {
+  @apply bg-secondary/80;
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+.token-column-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/50;
+  border-radius: 4px;
+  border: 1px solid hsl(var(--secondary));
+  transition: background-color 0.2s ease;
+}
+
+.token-column-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/70;
+}
+
+.token-column-scrollbar::-webkit-scrollbar-thumb:active {
+  @apply bg-muted-foreground/80;
+}
+
