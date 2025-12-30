@@ -258,15 +258,15 @@ function TokenCard({ token, className, style }: TokenCardProps) {
           </div>
 
           {/* Time and Icons Row */}
-          <div className="mb-1 flex flex-wrap items-center gap-1.5">
-            <span className="text-[10px] font-medium text-green-500">
+          <div className="mb-1 mt-4 flex flex-wrap items-center gap-1.5">
+            <span className="text-[13px] font-medium text-green-500">
               {age}
             </span>
             <Tooltip content="Search token" side="bottom">
               <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
                 <Icon
                   name="search"
-                  size={10}
+                  size={13}
                   className="text-muted-foreground"
                 />
               </button>
@@ -281,33 +281,33 @@ function TokenCard({ token, className, style }: TokenCardProps) {
               >
                 <Icon
                   name="users"
-                  size={10}
+                  size={13}
                   className="text-muted-foreground"
                 />
               </button>
             </Tooltip>
             <Tooltip content="View on explorer" side="bottom">
               <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
-                <Icon name="link" size={10} className="text-muted-foreground" />
+                <Icon name="link" size={13} className="text-muted-foreground" />
               </button>
             </Tooltip>
             <Tooltip content="Copy address" side="bottom">
               <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
-                <Icon name="copy" size={10} className="text-muted-foreground" />
+                <Icon name="copy" size={13} className="text-muted-foreground" />
               </button>
             </Tooltip>
             <Tooltip content="View achievements" side="bottom">
               <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
                 <Icon
                   name="trophy"
-                  size={10}
+                    size={13}
                   className="text-muted-foreground"
                 />
               </button>
             </Tooltip>
             <Tooltip content="View details" side="bottom">
               <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
-                <Icon name="eye" size={10} className="text-muted-foreground" />
+                <Icon name="eye" size={13} className="text-muted-foreground" />
               </button>
             </Tooltip>
             {holders > 0 && (
@@ -318,7 +318,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
           </div>
 
           {/* Percentage Indicators Row - aligned with button */}
-          <div className="flex flex-wrap items-center gap-1">
+          <div className="mt-5 flex flex-wrap items-center gap-1">
             {/* Holders Percent */}
             <div
               className={cn(
@@ -330,7 +330,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
             >
               <Icon
                 name="star"
-                size={8}
+                size={13}
                 className={metrics.holdersPercent > 0 ? "text-white" : ""}
               />
               <span>{metrics.holdersPercent}%</span>
@@ -347,7 +347,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
             >
               <Icon
                 name="chef-hat"
-                size={8}
+                size={13}
                 className={metrics.liquidityPercent > 0 ? "text-white" : ""}
               />
               <span>
@@ -367,7 +367,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
             >
               <Icon
                 name="target"
-                size={8}
+                size={13}
                 className={metrics.targetPercent > 0 ? "text-white" : ""}
               />
               <span>{metrics.targetPercent}%</span>
@@ -384,7 +384,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
             >
               <Icon
                 name="ghost"
-                size={8}
+                size={13}
                 className={metrics.gearPercent > 0 ? "text-white" : ""}
               />
               <span>{metrics.gearPercent}%</span>
@@ -401,7 +401,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
             >
               <Icon
                 name="gift"
-                size={8}
+                size={13}
                 className={metrics.holdersGearPercent > 0 ? "text-white" : ""}
               />
               <span>{metrics.holdersGearPercent}%</span>
@@ -453,16 +453,16 @@ function TokenCard({ token, className, style }: TokenCardProps) {
                 </span>
                 <div className="flex items-center gap-0.5">
                   <Icon name="dollar" size={9} className="text-purple-500" />
-                  <span className="text-[10px] font-medium leading-tight text-foreground">
+                  <span className="text-[8px] font-medium leading-tight text-foreground">
                     {fee.toFixed(3)}
                   </span>
                 </div>
               </div>
               <div className="flex flex-col items-end">
-                <span className="block text-[9px] leading-none text-muted-foreground">
+                <span className="block text-[8px] leading-none text-muted-foreground">
                   TX
                 </span>
-                <p className="text-[10px] font-medium leading-tight text-foreground">
+                <p className="font-small text-[10px] leading-tight text-foreground text-muted-foreground">
                   {formatNumber(transactions)}
                 </p>
               </div>

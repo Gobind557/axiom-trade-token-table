@@ -29,7 +29,7 @@ function ActionButton({
     <Button
       variant="action"
       className={cn(
-        "flex items-center gap-1 px-2 py-1 text-xs font-semibold",
+        "flex items-center gap px-2 py-1 text-xs font-semibold",
         variantClasses[variant],
         className
       )}
