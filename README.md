@@ -1,16 +1,8 @@
 # Axiom Trade Token Discovery Dashboard
 
-A high-performance, pixel-perfect replica of Axiom Trade's token discovery table with real-time updates, interactive popups, and optimized rendering. Built with Next.js 14 and modern React patterns.
+A high-performance,  replica of Axiom Trade's token discovery table with real-time updates, interactive popups, and optimized rendering. Built with Next.js 14 and modern React patterns.
 
-## 🎥 Demo Video
 
-Watch a quick walkthrough of the application:
-
-[![Demo Video](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
-
-**Video Link:** [Add your YouTube video link here](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
-
-*Duration: 1-2 minutes | Shows: Token discovery, sorting, filtering, popups, and interactions*
 
 ## ✨ Features
 
@@ -165,9 +157,7 @@ npm run type-check   # Run TypeScript type checking
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🙏 Acknowledgments
 
