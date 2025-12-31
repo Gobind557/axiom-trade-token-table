@@ -105,11 +105,14 @@ const ImagePopup = memo(function ImagePopup() {
           <span className="sr-only">Close</span>
         </button>
         {imageUrl.startsWith("data:") ? (
-          // For data URLs (SVG placeholders), use regular img tag
-          <img
+          // For data URLs (SVG placeholders), use Next.js Image with unoptimized
+          <Image
             src={imageUrl}
             alt="Enlarged token image"
+            width={320}
+            height={320}
             className="h-auto max-h-96 w-full object-contain"
+            unoptimized
             onError={() => {
               dispatch(setImagePopupOpen(false));
               dispatch(setImagePopupUrl(null));

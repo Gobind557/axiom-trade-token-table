@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useMemo, useRef } from "react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Icon, Tooltip } from "@/components/atoms";
 import { ActionButton } from "@/components/molecules/ActionButton";
@@ -193,10 +194,13 @@ const TokenCard = memo(function TokenCard({
             className="relative flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-border/50 bg-background/50 transition-opacity hover:opacity-90"
           >
             {imageUrl ? (
-              <img
+              <Image
                 src={imageUrl}
                 alt={name}
+                width={80}
+                height={80}
                 className="pointer-events-none h-full w-full object-cover"
+                unoptimized={imageUrl.startsWith("data:")}
               />
             ) : (
               <span className="pointer-events-none text-lg font-bold text-foreground">
