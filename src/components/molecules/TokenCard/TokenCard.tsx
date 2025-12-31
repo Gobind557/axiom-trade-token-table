@@ -1,11 +1,11 @@
 "use client";
 
+import { memo, useCallback, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Icon, Tooltip } from "@/components/atoms";
 import { ActionButton } from "@/components/molecules/ActionButton";
 import type { Token } from "@/types";
 import { formatCurrency, formatNumber, truncateAddress } from "@/lib/utils";
-import { useState, useEffect, useRef } from "react";
 import { useAppDispatch } from "@/store/hooks";
 import {
   setModalOpen,
@@ -22,7 +22,11 @@ export interface TokenCardProps {
   style?: React.CSSProperties;
 }
 
-function TokenCard({ token, className, style }: TokenCardProps) {
+const TokenCard = memo(function TokenCard({
+  token,
+  className,
+  style,
+}: TokenCardProps) {
   const dispatch = useAppDispatch();
   const {
     name,
@@ -30,24 +34,20 @@ function TokenCard({ token, className, style }: TokenCardProps) {
     imageUrl,
     address,
     age,
-    marketCap: initialMarketCap,
-    volume: initialVolume,
+    marketCap,
+    volume,
     fee,
     transactions,
     metrics,
     holders,
   } = token;
 
-  const [marketCap, setMarketCap] = useState(initialMarketCap);
-  const [volume, setVolume] = useState(initialVolume);
-  const [priceChange, setPriceChange] = useState<"up" | "down" | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const imageHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const iconRef = useRef<HTMLButtonElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
 
-  const handleUsersIconHover = () => {
+  const handleUsersIconHover = useCallback(() => {
     // Clear any pending close timeout
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
@@ -87,9 +87,9 @@ function TokenCard({ token, className, style }: TokenCardProps) {
       dispatch(setSelectedToken(token.id));
       dispatch(setModalOpen(true));
     }
-  };
+  }, [token.id, dispatch]);
 
-  const handleUsersIconLeave = () => {
+  const handleUsersIconLeave = useCallback(() => {
     // Add a delay before closing to allow moving to the popup
     hoverTimeoutRef.current = setTimeout(() => {
       dispatch(setModalOpen(false));
@@ -97,9 +97,22 @@ function TokenCard({ token, className, style }: TokenCardProps) {
       dispatch(setPopupPosition(null));
       hoverTimeoutRef.current = null;
     }, 150); // Reduced delay to prevent blinking
-  };
+  }, [dispatch]);
 
-  const handleImageHover = () => {
+  // Memoize placeholder image creation
+  const placeholderImage = useMemo(() => {
+    if (imageUrl) return null;
+    const initial = (symbol || name)[0]?.toUpperCase() || "?";
+    const svg = `
+      <svg width="320" height="320" xmlns="http://www.w3.org/2000/svg">
+        <rect width="320" height="320" fill="#1e293b"/>
+        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${initial}</text>
+      </svg>
+    `.trim();
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
+  }, [imageUrl, symbol, name]);
+
+  const handleImageHover = useCallback(() => {
     // Clear any pending close timeout
     if (imageHoverTimeoutRef.current) {
       clearTimeout(imageHoverTimeoutRef.current);
@@ -137,29 +150,18 @@ function TokenCard({ token, className, style }: TokenCardProps) {
         top = 16;
       }
 
-      // Use imageUrl if available, otherwise create a data URL with the symbol/name
-      const urlToShow = imageUrl || createPlaceholderImage(symbol || name);
+      // Use imageUrl if available, otherwise use placeholder
+      const urlToShow = imageUrl || placeholderImage;
 
-      dispatch(setImagePopupPosition({ top, left }));
-      dispatch(setImagePopupUrl(urlToShow));
-      dispatch(setImagePopupOpen(true));
+      if (urlToShow) {
+        dispatch(setImagePopupPosition({ top, left }));
+        dispatch(setImagePopupUrl(urlToShow));
+        dispatch(setImagePopupOpen(true));
+      }
     }
-  };
+  }, [imageUrl, placeholderImage, dispatch]);
 
-  // Create a placeholder image data URL
-  const createPlaceholderImage = (text: string) => {
-    const initial = text[0]?.toUpperCase() || "?";
-    // Create a simple SVG data URL as placeholder
-    const svg = `
-      <svg width="320" height="320" xmlns="http://www.w3.org/2000/svg">
-        <rect width="320" height="320" fill="#1e293b"/>
-        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${initial}</text>
-      </svg>
-    `.trim();
-    return `data:image/svg+xml;base64,${btoa(svg)}`;
-  };
-
-  const handleImageLeave = () => {
+  const handleImageLeave = useCallback(() => {
     // Add a delay before closing to allow moving to the popup
     imageHoverTimeoutRef.current = setTimeout(() => {
       dispatch(setImagePopupOpen(false));
@@ -167,39 +169,10 @@ function TokenCard({ token, className, style }: TokenCardProps) {
       dispatch(setImagePopupPosition(null));
       imageHoverTimeoutRef.current = null;
     }, 150);
-  };
+  }, [dispatch]);
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-      if (imageHoverTimeoutRef.current) {
-        clearTimeout(imageHoverTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Simulate price changes with shorter interval
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const changePercent = (Math.random() - 0.5) * 0.1; // ±5% change
-      const newMarketCap = initialMarketCap * (1 + changePercent);
-      const newVolume = initialVolume * (1 + changePercent * 0.5);
-
-      setPriceChange(newMarketCap > marketCap ? "up" : "down");
-      setMarketCap(newMarketCap);
-      setVolume(newVolume);
-
-      // Reset animation state after animation completes
-      setTimeout(() => setPriceChange(null), 600);
-    }, 2000); // Update every 2 seconds instead of longer intervals
-
-    return () => clearInterval(interval);
-  }, [initialMarketCap, initialVolume, marketCap]);
-
-  const displayAddress = truncateAddress(address);
+  // Memoize display address
+  const displayAddress = useMemo(() => truncateAddress(address), [address]);
 
   return (
     <div
@@ -273,7 +246,6 @@ function TokenCard({ token, className, style }: TokenCardProps) {
             </Tooltip>
             <Tooltip content="View token profile" side="bottom">
               <button
-                ref={iconRef}
                 onMouseEnter={handleUsersIconHover}
                 onMouseLeave={handleUsersIconLeave}
                 className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent"
@@ -300,7 +272,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
               <button className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-accent">
                 <Icon
                   name="trophy"
-                    size={13}
+                  size={13}
                   className="text-muted-foreground"
                 />
               </button>
@@ -418,13 +390,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
               <span className="block text-[7px] leading-none text-muted-foreground">
                 MC
               </span>
-              <p
-                className={cn(
-                  "text-[11px] font-semibold leading-tight text-green-500 transition-all duration-300",
-                  priceChange === "up" && "scale-110 text-green-400",
-                  priceChange === "down" && "scale-110 text-red-400"
-                )}
-              >
+              <p className="text-[11px] font-semibold leading-tight text-green-500">
                 {formatCurrency(marketCap)}
               </p>
             </div>
@@ -434,13 +400,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
               <span className="block text-[9px] leading-none text-muted-foreground">
                 V
               </span>
-              <p
-                className={cn(
-                  "text-[11px] font-semibold leading-tight text-green-500 transition-all duration-300",
-                  priceChange === "up" && "scale-110 text-green-400",
-                  priceChange === "down" && "scale-110 text-red-400"
-                )}
-              >
+              <p className="text-[11px] font-semibold leading-tight text-green-500">
                 {formatCurrency(volume)}
               </p>
             </div>
@@ -462,7 +422,7 @@ function TokenCard({ token, className, style }: TokenCardProps) {
                 <span className="block text-[8px] leading-none text-muted-foreground">
                   TX
                 </span>
-                <p className="font-small text-[10px] leading-tight text-foreground text-muted-foreground">
+                <p className="text-[10px] leading-tight text-muted-foreground">
                   {formatNumber(transactions)}
                 </p>
               </div>
@@ -475,6 +435,8 @@ function TokenCard({ token, className, style }: TokenCardProps) {
       </div>
     </div>
   );
-}
+});
+
+TokenCard.displayName = "TokenCard";
 
 export default TokenCard;

@@ -51,15 +51,3 @@ export type SortOption =
 
 export type SortDirection = "asc" | "desc";
 
-export interface WebSocketMessage {
-  type: "price_update" | "token_add" | "token_remove" | "connection_status";
-  data: unknown;
-}
-
-export interface PriceUpdate {
-  tokenId: string;
-  price: number;
-  marketCap: number;
-  volume: number;
-  timestamp: number;
-}

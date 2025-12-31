@@ -1,6 +1,7 @@
 "use client";
 
-import * as React from "react";
+import { memo, useEffect, useRef, useMemo, useState, useCallback } from "react";
+import { shallowEqual } from "react-redux";
 import { createPortal } from "react-dom";
 import { X, Calendar, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -14,20 +15,26 @@ export interface TokenPopupProps {
   token: Token | null;
 }
 
-function TokenPopup({ token }: TokenPopupProps) {
+const TokenPopup = memo(function TokenPopup({ token }: TokenPopupProps) {
   const dispatch = useAppDispatch();
-  const isOpen = useAppSelector((state) => state.ui.isModalOpen);
-  const position = useAppSelector((state) => state.ui.popupPosition);
-  const closeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-  const popupRef = React.useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = React.useState(false);
+  // Combine selectors with shallowEqual to prevent unnecessary re-renders
+  const { isOpen, position } = useAppSelector(
+    (state) => ({
+      isOpen: state.ui.isModalOpen,
+      position: state.ui.popupPosition,
+    }),
+    shallowEqual
+  );
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   // All hooks must be called before any conditional returns
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
@@ -35,15 +42,15 @@ function TokenPopup({ token }: TokenPopupProps) {
     };
   }, []);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     // Clear any pending close timeout when mouse enters popup
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
     }
-  };
+  }, []);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     // Add a small delay before closing to prevent flicker
     closeTimeoutRef.current = setTimeout(() => {
       dispatch(setModalOpen(false));
@@ -51,9 +58,9 @@ function TokenPopup({ token }: TokenPopupProps) {
       dispatch(setPopupPosition(null));
       closeTimeoutRef.current = null;
     }, 150);
-  };
+  }, [dispatch]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
@@ -61,7 +68,7 @@ function TokenPopup({ token }: TokenPopupProps) {
     dispatch(setModalOpen(false));
     dispatch(setSelectedToken(null));
     dispatch(setPopupPosition(null));
-  };
+  }, [dispatch]);
 
   // Now we can do conditional returns after all hooks
   if (!isOpen || !token || !position || !mounted) return null;
@@ -80,16 +87,25 @@ function TokenPopup({ token }: TokenPopupProps) {
     metrics,
   } = token;
 
-  // Generate social media handle from token name (example)
-  const socialHandle = `@${name.toLowerCase().replace(/\s+/g, "")}bnb`;
-  const socialUrl = `https://x.com/${socialHandle.replace("@", "")}`;
+  // Memoize social media handle and URL
+  const socialHandle = useMemo(
+    () => `@${name.toLowerCase().replace(/\s+/g, "")}bnb`,
+    [name]
+  );
+  const socialUrl = useMemo(
+    () => `https://x.com/${socialHandle.replace("@", "")}`,
+    [socialHandle]
+  );
 
-  const popupStyle: React.CSSProperties = {
-    position: "fixed",
-    top: `${position.top}px`,
-    left: `${position.left}px`,
-    zIndex: 50,
-  };
+  const popupStyle: React.CSSProperties = useMemo(
+    () => ({
+      position: "fixed",
+      top: `${position.top}px`,
+      left: `${position.left}px`,
+      zIndex: 50,
+    }),
+    [position]
+  );
 
   const popupContent = (
     <div
@@ -207,7 +223,9 @@ function TokenPopup({ token }: TokenPopupProps) {
   );
 
   return createPortal(popupContent, document.body);
-}
+});
+
+TokenPopup.displayName = "TokenPopup";
 
 export default TokenPopup;
 

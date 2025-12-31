@@ -7,7 +7,6 @@ interface TokensState {
   migrated: Token[];
   sortBy: Record<TokenStatus, SortOption | null>;
   sortDirection: Record<TokenStatus, SortDirection>;
-  filters: Record<TokenStatus, string>;
 }
 
 const initialState: TokensState = {
@@ -23,11 +22,6 @@ const initialState: TokensState = {
     new: "desc",
     "final-stretch": "desc",
     migrated: "desc",
-  },
-  filters: {
-    new: "",
-    "final-stretch": "",
-    migrated: "",
   },
 };
 
@@ -85,13 +79,6 @@ const tokensSlice = createSlice({
       const { status, direction } = action.payload;
       state.sortDirection[status] = direction;
     },
-    setFilter: (
-      state,
-      action: PayloadAction<{ status: TokenStatus; filter: string }>
-    ) => {
-      const { status, filter } = action.payload;
-      state.filters[status] = filter;
-    },
   },
 });
 
@@ -100,7 +87,6 @@ export const {
   updateToken,
   setSortBy,
   setSortDirection,
-  setFilter,
 } = tokensSlice.actions;
 
 export default tokensSlice.reducer;

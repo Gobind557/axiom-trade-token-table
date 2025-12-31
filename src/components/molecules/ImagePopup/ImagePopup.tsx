@@ -1,6 +1,7 @@
 "use client";
 
-import * as React from "react";
+import { memo, useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { shallowEqual } from "react-redux";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { X } from "lucide-react";
@@ -12,21 +13,27 @@ import {
   setImagePopupUrl,
 } from "@/store/slices/uiSlice";
 
-function ImagePopup() {
+const ImagePopup = memo(function ImagePopup() {
   const dispatch = useAppDispatch();
-  const isOpen = useAppSelector((state) => state.ui.isImagePopupOpen);
-  const imageUrl = useAppSelector((state) => state.ui.imagePopupUrl);
-  const position = useAppSelector((state) => state.ui.imagePopupPosition);
-  const closeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-  const popupRef = React.useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = React.useState(false);
+  // Combine selectors with shallowEqual to prevent unnecessary re-renders
+  const { isOpen, imageUrl, position } = useAppSelector(
+    (state) => ({
+      isOpen: state.ui.isImagePopupOpen,
+      imageUrl: state.ui.imagePopupUrl,
+      position: state.ui.imagePopupPosition,
+    }),
+    shallowEqual
+  );
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   // All hooks must be called before any conditional returns
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
@@ -34,15 +41,15 @@ function ImagePopup() {
     };
   }, []);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     // Clear any pending close timeout when mouse enters popup
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
     }
-  };
+  }, []);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     // Add a small delay before closing to prevent flicker
     closeTimeoutRef.current = setTimeout(() => {
       dispatch(setImagePopupOpen(false));
@@ -50,9 +57,9 @@ function ImagePopup() {
       dispatch(setImagePopupPosition(null));
       closeTimeoutRef.current = null;
     }, 150);
-  };
+  }, [dispatch]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
@@ -60,17 +67,21 @@ function ImagePopup() {
     dispatch(setImagePopupOpen(false));
     dispatch(setImagePopupUrl(null));
     dispatch(setImagePopupPosition(null));
-  };
+  }, [dispatch]);
+
+  // Memoize popup style before conditional returns
+  const popupStyle: React.CSSProperties = useMemo(
+    () => ({
+      position: "fixed",
+      top: position ? `${position.top}px` : "0",
+      left: position ? `${position.left}px` : "0",
+      zIndex: 50,
+    }),
+    [position]
+  );
 
   if (!isOpen || !imageUrl || !position || !mounted) return null;
   if (typeof document === "undefined") return null;
-
-  const popupStyle: React.CSSProperties = {
-    position: "fixed",
-    top: `${position.top}px`,
-    left: `${position.left}px`,
-    zIndex: 50,
-  };
 
   const popupContent = (
     <div
@@ -126,6 +137,8 @@ function ImagePopup() {
   );
 
   return createPortal(popupContent, document.body);
-}
+});
+
+ImagePopup.displayName = "ImagePopup";
 
 export default ImagePopup;

@@ -1,10 +1,11 @@
 "use client";
 
+import { memo, useMemo, useCallback } from "react";
+import { shallowEqual } from "react-redux";
 import { ColumnHeader } from "@/components/organisms/ColumnHeader";
 import { TokenCard } from "@/components/molecules/TokenCard";
 import { cn, sortTokens } from "@/lib/utils";
 import type { Token, TokenStatus, SortOption } from "@/types";
-import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setSortBy, setSortDirection } from "@/store/slices/tokensSlice";
 
@@ -14,14 +15,19 @@ export interface TokenColumnProps {
   className?: string;
 }
 
-function TokenColumn({ status, tokens, className }: TokenColumnProps) {
+const TokenColumn = memo(function TokenColumn({
+  status,
+  tokens,
+  className,
+}: TokenColumnProps) {
   const dispatch = useAppDispatch();
-  const sortBy = useAppSelector((state) => state.tokens.sortBy[status]);
-  const sortDirection = useAppSelector(
-    (state) => state.tokens.sortDirection[status]
-  );
-  const [activeFilter, setActiveFilter] = useState<"P1" | "P2" | "P3" | null>(
-    null
+  // Combine selectors with shallowEqual to prevent unnecessary re-renders
+  const { sortBy, sortDirection } = useAppSelector(
+    (state) => ({
+      sortBy: state.tokens.sortBy[status],
+      sortDirection: state.tokens.sortDirection[status],
+    }),
+    shallowEqual
   );
 
   // Sort tokens based on Redux state
@@ -29,7 +35,7 @@ function TokenColumn({ status, tokens, className }: TokenColumnProps) {
     return sortTokens(tokens, sortBy, sortDirection);
   }, [tokens, sortBy, sortDirection]);
 
-  const handleSortClick = () => {
+  const handleSortClick = useCallback(() => {
     // Cycle through sort options: null -> marketCap -> volume -> price -> holders -> transactions -> age -> null
     const sortOptions: Array<SortOption | null> = [
       null,
@@ -62,7 +68,7 @@ function TokenColumn({ status, tokens, className }: TokenColumnProps) {
       // If going back to null, clear sort
       dispatch(setSortBy({ status, sortBy: null }));
     }
-  };
+  }, [status, sortBy, sortDirection, dispatch]);
 
   return (
     <div
@@ -75,10 +81,6 @@ function TokenColumn({ status, tokens, className }: TokenColumnProps) {
       <ColumnHeader
         status={status}
         count={sortedTokens.length}
-        activeFilter={activeFilter}
-        onFilterClick={(filter) => {
-          setActiveFilter(activeFilter === filter ? null : filter);
-        }}
         onSortClick={handleSortClick}
         sortBy={sortBy}
         sortDirection={sortDirection}
@@ -108,6 +110,8 @@ function TokenColumn({ status, tokens, className }: TokenColumnProps) {
       </div>
     </div>
   );
-}
+});
+
+TokenColumn.displayName = "TokenColumn";
 
 export default TokenColumn;

@@ -9,9 +9,7 @@ import { COLUMN_TITLES } from "@/lib/constants";
 export interface ColumnHeaderProps {
   status: TokenStatus;
   count?: number;
-  activeFilter?: "P1" | "P2" | "P3" | null;
   onSortClick?: () => void;
-  onFilterClick?: (filter: "P1" | "P2" | "P3") => void;
   sortBy?: SortOption | null;
   sortDirection?: SortDirection;
   className?: string;
@@ -20,9 +18,7 @@ export interface ColumnHeaderProps {
 function ColumnHeader({
   status,
   count = 0,
-  activeFilter = null,
   onSortClick,
-  onFilterClick,
   sortBy = null,
   sortDirection = "desc",
   className,
@@ -66,24 +62,6 @@ function ColumnHeader({
           {/* Solana logo */}
           <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-purple-500 via-blue-500 to-green-500 flex items-center justify-center">
             <span className="text-white text-[8px] font-bold">S</span>
-          </div>
-
-          {/* P1, P2, P3 indicators */}
-          <div className="flex items-center gap-1">
-            {(["P1", "P2", "P3"] as const).map((filter) => (
-              <button
-                key={filter}
-                onClick={() => onFilterClick?.(filter)}
-                className={cn(
-                  "px-1.5 py-0.5 text-[10px] font-medium rounded transition-colors",
-                  activeFilter === filter
-                    ? "bg-blue-600 text-white"
-                    : "text-foreground hover:text-muted-foreground"
-                )}
-              >
-                {filter}
-              </button>
-            ))}
           </div>
         </div>
 

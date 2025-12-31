@@ -4,8 +4,6 @@ interface UIState {
   selectedTokenId: string | null;
   isModalOpen: boolean;
   activePopoverId: string | null;
-  sidebarOpen: boolean;
-  theme: "dark" | "light";
   popupPosition: { top: number; left: number } | null;
   isImagePopupOpen: boolean;
   imagePopupUrl: string | null;
@@ -16,8 +14,6 @@ const initialState: UIState = {
   selectedTokenId: null,
   isModalOpen: false,
   activePopoverId: null,
-  sidebarOpen: false,
-  theme: "dark",
   popupPosition: null,
   isImagePopupOpen: false,
   imagePopupUrl: null,
@@ -36,12 +32,6 @@ const uiSlice = createSlice({
     },
     setActivePopover: (state, action: PayloadAction<string | null>) => {
       state.activePopoverId = action.payload;
-    },
-    setSidebarOpen: (state, action: PayloadAction<boolean>) => {
-      state.sidebarOpen = action.payload;
-    },
-    setTheme: (state, action: PayloadAction<"dark" | "light">) => {
-      state.theme = action.payload;
     },
     setPopupPosition: (state, action: PayloadAction<{ top: number; left: number } | null>) => {
       state.popupPosition = action.payload;
@@ -62,8 +52,6 @@ export const {
   setSelectedToken,
   setModalOpen,
   setActivePopover,
-  setSidebarOpen,
-  setTheme,
   setPopupPosition,
   setImagePopupOpen,
   setImagePopupUrl,
