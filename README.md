@@ -173,3 +173,8 @@ For questions or suggestions, please open an issue on GitHub.
 ---
 
 **Made with ❤️ using Next.js and TypeScript**
+
+<img width="1001" height="459" alt="image" src="https://github.com/user-attachments/assets/5be550ef-2d29-413d-ba76-52fb5a499931" />
+<img width="433" height="345" alt="image" src="https://github.com/user-attachments/assets/4300153d-d4e4-4ea9-8d89-59417d5a1ab8" />
+
+
