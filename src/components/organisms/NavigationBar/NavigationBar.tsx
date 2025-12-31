@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@/components/atoms";
 import {
   HelpCircle,
   List,

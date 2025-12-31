@@ -3,6 +3,7 @@
 import { memo, useEffect, useRef, useMemo, useState, useCallback } from "react";
 import { shallowEqual } from "react-redux";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import { X, Calendar, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/components/atoms";
@@ -70,6 +71,26 @@ const TokenPopup = memo(function TokenPopup({ token }: TokenPopupProps) {
     dispatch(setPopupPosition(null));
   }, [dispatch]);
 
+  // Memoize values before conditional return (all hooks must be called unconditionally)
+  const socialHandle = useMemo(
+    () => token ? `@${token.name.toLowerCase().replace(/\s+/g, "")}bnb` : "",
+    [token?.name]
+  );
+  const socialUrl = useMemo(
+    () => `https://x.com/${socialHandle.replace("@", "")}`,
+    [socialHandle]
+  );
+
+  const popupStyle: React.CSSProperties = useMemo(
+    () => ({
+      position: "fixed",
+      top: position ? `${position.top}px` : "0",
+      left: position ? `${position.left}px` : "0",
+      zIndex: 50,
+    }),
+    [position]
+  );
+
   // Now we can do conditional returns after all hooks
   if (!isOpen || !token || !position || !mounted) return null;
 
@@ -84,28 +105,7 @@ const TokenPopup = memo(function TokenPopup({ token }: TokenPopupProps) {
     holders,
     transactions,
     fee,
-    metrics,
   } = token;
-
-  // Memoize social media handle and URL
-  const socialHandle = useMemo(
-    () => `@${name.toLowerCase().replace(/\s+/g, "")}bnb`,
-    [name]
-  );
-  const socialUrl = useMemo(
-    () => `https://x.com/${socialHandle.replace("@", "")}`,
-    [socialHandle]
-  );
-
-  const popupStyle: React.CSSProperties = useMemo(
-    () => ({
-      position: "fixed",
-      top: `${position.top}px`,
-      left: `${position.left}px`,
-      zIndex: 50,
-    }),
-    [position]
-  );
 
   const popupContent = (
     <div
@@ -133,10 +133,13 @@ const TokenPopup = memo(function TokenPopup({ token }: TokenPopupProps) {
               <div className="flex-shrink-0">
                 <div className="relative h-12 w-12 overflow-hidden rounded-full border border-border bg-background">
                   {imageUrl ? (
-                    <img
+                    <Image
                       src={imageUrl}
                       alt={name}
+                      width={48}
+                      height={48}
                       className="h-full w-full object-cover"
+                      unoptimized={imageUrl.startsWith("data:")}
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">

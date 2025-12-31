@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@/components/atoms";
 import { ArrowDownUp, Zap, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TokenStatus, SortOption, SortDirection } from "@/types";
