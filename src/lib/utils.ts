@@ -112,7 +112,7 @@ export function sortTokens(
  */
 function parseAge(age: string): number {
   const match = age.match(/^(\d+)([smhdwy])$/);
-  if (!match) return 0;
+  if (!match || !match[1] || !match[2]) return 0;
   
   const value = parseInt(match[1], 10);
   const unit = match[2];

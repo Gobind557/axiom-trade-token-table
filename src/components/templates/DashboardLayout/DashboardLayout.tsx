@@ -11,7 +11,7 @@ export interface DashboardLayoutProps {
 }
 
 function DashboardLayout({ children, className }: DashboardLayoutProps) {
-  const [activeTab, setActiveTab] = useState<"discover" | "pulse" | "pnl">(
+  const [activeTab, setActiveTab] = useState<"wallet" | "twitter" | "discover" | "pulse" | "pnl">(
     "pulse"
   );
 

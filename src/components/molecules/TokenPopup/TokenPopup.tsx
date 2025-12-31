@@ -10,7 +10,11 @@ import { Icon } from "@/components/atoms";
 import type { Token } from "@/types";
 import { formatCurrency, truncateAddress } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setModalOpen, setSelectedToken, setPopupPosition } from "@/store/slices/uiSlice";
+import {
+  setModalOpen,
+  setSelectedToken,
+  setPopupPosition,
+} from "@/store/slices/uiSlice";
 
 export interface TokenPopupProps {
   token: Token | null;
@@ -73,8 +77,8 @@ const TokenPopup = memo(function TokenPopup({ token }: TokenPopupProps) {
 
   // Memoize values before conditional return (all hooks must be called unconditionally)
   const socialHandle = useMemo(
-    () => token ? `@${token.name.toLowerCase().replace(/\s+/g, "")}bnb` : "",
-    [token?.name]
+    () => (token ? `@${token.name.toLowerCase().replace(/\s+/g, "")}bnb` : ""),
+    [token]
   );
   const socialUrl = useMemo(
     () => `https://x.com/${socialHandle.replace("@", "")}`,
@@ -115,7 +119,9 @@ const TokenPopup = memo(function TokenPopup({ token }: TokenPopupProps) {
       style={popupStyle}
       className={cn(
         "w-full max-w-sm rounded-lg border border-border bg-secondary/95 p-0 shadow-lg transition-all duration-200",
-        isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+        isOpen
+          ? "scale-100 opacity-100"
+          : "pointer-events-none scale-95 opacity-0"
       )}
     >
       {/* Main content */}
@@ -128,100 +134,106 @@ const TokenPopup = memo(function TokenPopup({ token }: TokenPopupProps) {
           <span className="sr-only">Close</span>
         </button>
 
-            {/* Profile Card */}
-            <div className="mb-3 flex items-start gap-3">
-              <div className="flex-shrink-0">
-                <div className="relative h-12 w-12 overflow-hidden rounded-full border border-border bg-background">
-                  {imageUrl ? (
-                    <Image
-                      src={imageUrl}
-                      alt={name}
-                      width={48}
-                      height={48}
-                      className="h-full w-full object-cover"
-                      unoptimized={imageUrl.startsWith("data:")}
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
-                      <span className="text-sm font-bold text-white">
-                        {symbol?.[0]?.toUpperCase() || name[0]?.toUpperCase()}
-                      </span>
-                    </div>
-                  )}
+        {/* Profile Card */}
+        <div className="mb-3 flex items-start gap-3">
+          <div className="flex-shrink-0">
+            <div className="relative h-12 w-12 overflow-hidden rounded-full border border-border bg-background">
+              {imageUrl ? (
+                <Image
+                  src={imageUrl}
+                  alt={name}
+                  width={48}
+                  height={48}
+                  className="h-full w-full object-cover"
+                  unoptimized={imageUrl.startsWith("data:")}
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
+                  <span className="text-sm font-bold text-white">
+                    {symbol?.[0]?.toUpperCase() || name[0]?.toUpperCase()}
+                  </span>
                 </div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="mb-0.5 flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold text-foreground truncate">{name}</h3>
-                  <Icon name="link" size={10} className="text-muted-foreground flex-shrink-0" />
-                </div>
-                <p className="mb-1.5 text-xs text-muted-foreground truncate">
-                  {socialHandle}
-                </p>
-                <p className="text-xs text-foreground line-clamp-2">
-                  Transform Your Look with ${symbol} Upload your photo and try
-                  on stunning hairstyles instantly with our AI-powered tool
-                </p>
-              </div>
+              )}
             </div>
-
-            {/* Account Details */}
-            <div className="mb-3 space-y-1.5 border-t border-border pt-2">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                <span>Joined {age}</span>
-              </div>
-              <div className="flex items-center gap-3 text-xs">
-                <span className="text-foreground">
-                  <span className="font-semibold">{holders}</span> Following
-                </span>
-                <span className="text-foreground">
-                  <span className="font-semibold">{transactions}</span> Followers
-                </span>
-              </div>
-            </div>
-
-            {/* Token Metrics */}
-            <div className="mb-3 space-y-1.5 border-t border-border pt-2">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-[10px] text-muted-foreground">Market Cap</p>
-                  <p className="text-xs font-semibold text-green-500">
-                    {formatCurrency(marketCap)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground">Volume</p>
-                  <p className="text-xs font-semibold text-green-500">
-                    {formatCurrency(volume)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground">Fee</p>
-                  <p className="text-xs font-semibold text-foreground">
-                    {fee.toFixed(3)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground">Address</p>
-                  <p className="text-[10px] font-mono text-muted-foreground">
-                    {truncateAddress(address)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <a
-              href={socialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              <span>See profile on X</span>
-              <ExternalLink className="h-3 w-3" />
-            </a>
           </div>
+          <div className="min-w-0 flex-1">
+            <div className="mb-0.5 flex items-center gap-1.5">
+              <h3 className="truncate text-sm font-bold text-foreground">
+                {name}
+              </h3>
+              <Icon
+                name="link"
+                size={10}
+                className="flex-shrink-0 text-muted-foreground"
+              />
+            </div>
+            <p className="mb-1.5 truncate text-xs text-muted-foreground">
+              {socialHandle}
+            </p>
+            <p className="line-clamp-2 text-xs text-foreground">
+              Transform Your Look with ${symbol} Upload your photo and try on
+              stunning hairstyles instantly with our AI-powered tool
+            </p>
+          </div>
+        </div>
+
+        {/* Account Details */}
+        <div className="mb-3 space-y-1.5 border-t border-border pt-2">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3" />
+            <span>Joined {age}</span>
+          </div>
+          <div className="flex items-center gap-3 text-xs">
+            <span className="text-foreground">
+              <span className="font-semibold">{holders}</span> Following
+            </span>
+            <span className="text-foreground">
+              <span className="font-semibold">{transactions}</span> Followers
+            </span>
+          </div>
+        </div>
+
+        {/* Token Metrics */}
+        <div className="mb-3 space-y-1.5 border-t border-border pt-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-[10px] text-muted-foreground">Market Cap</p>
+              <p className="text-xs font-semibold text-green-500">
+                {formatCurrency(marketCap)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground">Volume</p>
+              <p className="text-xs font-semibold text-green-500">
+                {formatCurrency(volume)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground">Fee</p>
+              <p className="text-xs font-semibold text-foreground">
+                {fee.toFixed(3)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground">Address</p>
+              <p className="font-mono text-[10px] text-muted-foreground">
+                {truncateAddress(address)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <a
+          href={socialUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          <span>See profile on X</span>
+          <ExternalLink className="h-3 w-3" />
+        </a>
+      </div>
     </div>
   );
 
@@ -231,4 +243,3 @@ const TokenPopup = memo(function TokenPopup({ token }: TokenPopupProps) {
 TokenPopup.displayName = "TokenPopup";
 
 export default TokenPopup;
-
