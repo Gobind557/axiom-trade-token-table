@@ -41,6 +41,9 @@ const config: Config = {
         "fade-in": "fadeIn 0.2s ease-in-out",
         "slide-up": "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         "shimmer": "shimmer 2s linear infinite",
+        "price-up": "priceUp 0.6s ease-out",
+        "price-down": "priceDown 0.6s ease-out",
+        "price-flash": "priceFlash 0.3s ease-in-out",
       },
       keyframes: {
         fadeIn: {
@@ -54,6 +57,21 @@ const config: Config = {
         shimmer: {
           "0%": { backgroundPosition: "-1000px 0" },
           "100%": { backgroundPosition: "1000px 0" },
+        },
+        priceUp: {
+          "0%": { transform: "translateY(0)", color: "rgb(34 197 94)" },
+          "50%": { transform: "translateY(-4px)", color: "rgb(74 222 128)" },
+          "100%": { transform: "translateY(0)", color: "rgb(34 197 94)" },
+        },
+        priceDown: {
+          "0%": { transform: "translateY(0)", color: "rgb(239 68 68)" },
+          "50%": { transform: "translateY(4px)", color: "rgb(248 113 113)" },
+          "100%": { transform: "translateY(0)", color: "rgb(239 68 68)" },
+        },
+        priceFlash: {
+          "0%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+          "100%": { opacity: "1" },
         },
       },
     },

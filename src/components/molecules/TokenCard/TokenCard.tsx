@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useMemo, useRef } from "react";
+import { memo, useCallback, useMemo, useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Icon, Tooltip } from "@/components/atoms";
@@ -41,12 +41,50 @@ const TokenCard = memo(function TokenCard({
     transactions,
     metrics,
     holders,
+    price,
   } = token;
 
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const imageHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
+
+  // Track previous price for animation
+  const previousPriceRef = useRef<number | null>(null);
+  const [priceDirection, setPriceDirection] = useState<
+    "up" | "down" | "neutral"
+  >("neutral");
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Update price direction when price changes
+  useEffect(() => {
+    const previousPrice = previousPriceRef.current;
+
+    // Initialize on first render
+    if (previousPrice === null) {
+      previousPriceRef.current = price;
+      return;
+    }
+
+    // Detect price change and animate
+    if (price !== previousPrice) {
+      if (price > previousPrice) {
+        setPriceDirection("up");
+      } else if (price < previousPrice) {
+        setPriceDirection("down");
+      }
+      setIsAnimating(true);
+      previousPriceRef.current = price;
+
+      // Reset animation state after animation completes
+      const timeout = setTimeout(() => {
+        setIsAnimating(false);
+        setPriceDirection("neutral");
+      }, 600);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [price]);
 
   const handleUsersIconHover = useCallback(() => {
     // Clear any pending close timeout
@@ -389,6 +427,31 @@ const TokenCard = memo(function TokenCard({
         <div className="flex flex-shrink-0 flex-col items-end">
           {/* Market Data - Compact */}
           <div className="flex flex-col items-end gap-0">
+            {/* Price with animation */}
+            <div className="text-right">
+              <span className="block text-[7px] leading-none text-muted-foreground">
+                P
+              </span>
+              <p
+                className={cn(
+                  "text-[11px] font-semibold leading-tight transition-colors duration-300",
+                  isAnimating &&
+                    priceDirection === "up" &&
+                    "animate-price-up text-green-500",
+                  isAnimating &&
+                    priceDirection === "down" &&
+                    "animate-price-down text-red-500",
+                  !isAnimating && "text-green-500"
+                )}
+              >
+                {price >= 0.01
+                  ? `$${price.toFixed(2)}`
+                  : price >= 0.0001
+                    ? `$${price.toFixed(4)}`
+                    : `$${price.toFixed(6)}`}
+              </p>
+            </div>
+
             {/* Market Cap */}
             <div className="text-right">
               <span className="block text-[7px] leading-none text-muted-foreground">
