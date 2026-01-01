@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "@/providers/StoreProvider";
 import { TooltipProvider } from "@/components/atoms";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,11 +20,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={inter.className}>
-        <StoreProvider>
-          <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
-        </StoreProvider>
+        <ErrorBoundary>
+          <StoreProvider>
+            <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+          </StoreProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
 }
-
